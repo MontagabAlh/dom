@@ -1,45 +1,61 @@
-body {
-    font-family: Arial, sans-serif;
-    display: flex;
-    flex-direction: column;
-    margin: 0;
-    padding: 0;
-    background-color: #f9f9f9;
-}
+/* تحديد التنسيق الأساسي للأجزاء المختلفة في الصفحة */
 .container {
-    width: 100%;
-    padding: 20px;
-    box-sizing: border-box;
+    position: relative;
+    width: 1025px;
+    margin: auto;
 }
-.visit-list {
-    display: flex;
-    gap: 15px;
-}
-.visit-item {
-    flex: 1 1 250px;
-    padding: 15px;
-    background-color: #ffffff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    cursor: pointer;
-}
-.visit-item h2 {
-    font-size: 1.2em;
-    color: #333;
-}
-.visit-item p {
-    color: #555;
-}
-.iframe-container {
-    margin-top: 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-}
+
 iframe {
-    border: none;
+    border: 1px solid #ccc;
     width: 100%;
-    height: 500px;
+    pointer-events: none;
+    /* منع التفاعل داخل الـ iframe */
+}
+
+.canvas {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.button-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.percentage-label {
+    position: absolute;
+    left: -30px;
+    font-size: 12px;
+    color: black;
+}
+
+.divider-line {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    border-top: 1px dotted black;
+}
+
+.dynamic-line {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    border-top: 1px dotted black;
+    pointer-events: none;
+    display: none;
+}
+
+.dynamic-percentage {
+    position: absolute;
+    left: -40px;
+    font-size: 12px;
+    color: blue;
+    pointer-events: none;
+    display: none;
 }

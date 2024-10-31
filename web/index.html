@@ -1,17 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Display DOM and Data</title>
-    <link rel="stylesheet" href="./style.css">
+    <title>Page Scroll Visualization</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-    <div class="container" id="contentContainer">
-        <h1>Visited Pages Data</h1>
-        <div class="visit-list" id="visitList"></div>
+    <!-- زر للتحكم في عرض الإطار وقائمة الصفحات -->
+    <div class="button-container">
+        <button onclick="toggleWidth(1025)">Width 1025</button>
+        <button onclick="toggleWidth(430)">Width 430</button>
+        <select id="pageSelect" onchange="loadPage(this.value)">
+        </select>
     </div>
 
-    <script src="./script.js"></script>
+    <!-- حاوية الإطار والمكونات الأخرى -->
+    <div id="container" class="container">
+        <iframe id="iframe" height="13450" srcdoc=""></iframe>
+        <canvas id="overlayCanvas" class="canvas"></canvas>
+        <div id="dynamicLine" class="dynamic-line"></div>
+        <div id="dynamicPercentage" class="dynamic-percentage"></div>
+    </div>
+
+    <script src="https://unpkg.com/heatmap.js@2.0.5/build/heatmap.js"></script>
+    <script src="script.js"></script>
 </body>
+
 </html>

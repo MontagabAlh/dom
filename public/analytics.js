@@ -1,93 +1,109 @@
-function downloadPageAsHTML() {
-    const baseUrl = new URL(window.location.href).origin;
+function trackUserInteractions() {
+    const sessionId = generateSessionId();
+    let clickData = [];
+    let maxScrollY = window.innerHeight;
+    let isDomSent = false;
+    let widthS = window.innerWidth >= 1025 ? 1025 : 430;
+    const pageLoadTime = Date.now();
 
+    function generateSessionId() {
+        return Math.random().toString(36).substr(2, 9);
+    }
 
-    const allElements = document.querySelectorAll('*');
-
-    allElements.forEach((element) => {
-        if (element.style.opacity) {
-            element.style.opacity = ''; // إزالة خاصية opacity
-        }
-        if (element.style.transform) {
-            element.style.transform = ''; // إزالة خاصية transform
-        }
-
-        const computedStyle = window.getComputedStyle(element);
-        const backgroundImage = computedStyle.backgroundImage;
-        if (backgroundImage && backgroundImage.startsWith('url')) {
-            const urlMatch = backgroundImage.match(/url\("([^"]+)"\)/);
-            if (urlMatch) {
-                const url = urlMatch[1];
-                if (url.startsWith('/')) {
-                    element.style.backgroundImage = '';
-                    element.style.backgroundImage = `url("${baseUrl}${url}")`;
-                }
-            }
-        }
+    // Track click events
+    document.addEventListener('click', (event) => {
+        clickData.push({
+            x: (event.clientX * widthS) / window.innerWidth,
+            y: event.clientY + window.pageYOffset,
+            time: Date.now() - pageLoadTime // Calculate time since page load
+        });
     });
 
+    // Track scroll events
+    document.addEventListener('scroll', () => {
+        maxScrollY = Math.max(maxScrollY, window.pageYOffset + window.innerHeight); // Update max scroll value
+    });
 
+    // Send DOM content after 4 seconds
     setTimeout(() => {
-
-        let domContent = document.documentElement.outerHTML;
-        domContent = domContent.replace(/(href|src|srcset)="(\/[^"]*)"/g, (match, attr, url) => {
-            return `${attr}="${baseUrl}${url}"`;
-        });
-        domContent = domContent.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
-
-        const completeHTMLContent = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Downloaded Page</title>
-</head>
-<body>
-    ${domContent}
-</body>
-</html>
-        `;
-
-        // const blob = new Blob([completeHTMLContent], { type: 'text/html' });
-
-
-        // const downloadLink = document.createElement('a');
-        // downloadLink.href = URL.createObjectURL(blob);
-        // downloadLink.download = 'downloadedPage.html';
-        // document.body.appendChild(downloadLink);
-
-
-        // downloadLink.click();
-
-        // document.body.removeChild(downloadLink);
-
-        const dataToSend = {
-            url: window.location.href,
-            time: new Date().toISOString(),
-            width: window.innerWidth,
-            dom: completeHTMLContent
-        };
-
-
-        fetch('http://localhost:3001/submit-dom', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(dataToSend)
-        })
-            .then(response => {
-                if (response.ok) {
-                    console.log('DOM data sent successfully!');
-                } else {
-                    console.error('Failed to send DOM data');
-                }
-            })
-            .catch(error => console.error('Error:', error));
-
-    }, 3000);
+        if (!isDomSent) {
+            downloadPageAsHTML(sessionId).then(() => {
+                isDomSent = true;
+                // Send interaction data every second for 60 seconds after DOM is sent
+                let interval = setInterval(() => {
+                    sendInteractionData(sessionId, clickData, maxScrollY, widthS);
+                }, 1000);
+                // Stop tracking after 60 seconds
+                setTimeout(() => clearInterval(interval), 300000);
+            });
+        }
+    }, 4000);
 }
 
+function downloadPageAsHTML(sessionId) {
+    const baseUrl = new URL(window.location.href).origin;
 
-setTimeout(downloadPageAsHTML, 3000);
+    // Remove inline opacity and transform styles
+    const allElements = document.querySelectorAll('*');
+    allElements.forEach((element) => {
+        if (element.style.opacity) element.style.opacity = '';
+        if (element.style.transform) element.style.transform = '';
+    });
+
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            let domContent = document.documentElement.outerHTML;
+            domContent = domContent.replace(/(href|src|srcset)="(\/[^"]*)"/g, (match, attr, url) => {
+                return `${attr}="${baseUrl}${url}"`;
+            });
+            domContent = domContent.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
+
+            const dataToSend = {
+                id: sessionId, // إضافة الـ ID للـ session
+                url: window.location.href,
+                width: window.innerWidth >= 1025 ? 1025 : 430,
+                height: document.body.scrollHeight, // قيمة الارتفاع  
+                dom: domContent
+            };
+
+            fetch('http://localhost:3001/submit-dom', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dataToSend)
+            }).then(response => {
+                if (response.ok) {
+                    console.log('DOM data sent successfully!');
+                    resolve(); // التأكيد على أنه تم إرسال الـ DOM
+                } else {
+                    console.error('Failed to send DOM data');
+                    resolve(); // قم بحل الوعد حتى في حالة الفشل إذا كنت تريد متابعة العملية
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+                resolve(); // قم بحل الوعد في حالة حدوث خطأ
+            });
+        }, 100);
+    });
+}
+
+function sendInteractionData(sessionId, clickData, maxScrollY, widthS) {
+    const dataToSend = {
+        id: sessionId,
+        url: window.location.href,
+        width: widthS,
+        click: clickData,
+        scroll: maxScrollY
+    };
+    console.log(dataToSend);
+
+    fetch('http://localhost:3001/submit-interaction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dataToSend)
+    }).then(response => {
+        if (response.ok) console.log('Interaction data sent successfully!');
+        else console.error('Failed to send interaction data');
+    }).catch(error => console.error('Error:', error));
+}
+
+trackUserInteractions();
