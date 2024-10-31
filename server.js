@@ -137,14 +137,6 @@ app.get('/', (req, res) => {
     const filePath = path.join(__dirname, 'web', 'index.html');
     res.sendFile(filePath);
 });
-app.get('/style.css', (req, res) => {
-    const filePath = path.join(__dirname, 'web', 'style.css');
-    res.sendFile(filePath);
-});
-app.get('/script.js', (req, res) => {
-    const filePath = path.join(__dirname, 'web', 'script.js');
-    res.sendFile(filePath);
-});
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
