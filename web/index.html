@@ -149,6 +149,7 @@
                     url = selectedPage.url; // تعيين قيمة url هنا
                     console.log("Selected page URL: ", url); // لطباعة عنوان URL في وحدة التحكم
 
+
                     renderClicks();
                     renderScrollOverlay();
                 }
@@ -254,25 +255,6 @@
             line.style.top = `${positionY}px`;
             document.getElementById('container').appendChild(line);
         }
-
-        // تحديث النسبة المئوية للتمرير عندما يتحرك المستخدم داخل إطار الصفحة
-        document.getElementById('container').addEventListener('mousemove', (e) => {
-            const iframeRect = document.getElementById('iframe').getBoundingClientRect();
-            if (e.clientY >= iframeRect.top && e.clientY <= iframeRect.bottom) {
-                const mouseY = e.clientY - iframeRect.top;
-                const dynamicLine = document.getElementById('dynamicLine');
-                const dynamicPercentage = document.getElementById('dynamicPercentage');
-
-                dynamicLine.style.top = `${mouseY}px`;
-                dynamicLine.style.display = 'block';
-                dynamicPercentage.style.top = `${mouseY}px`;
-                dynamicPercentage.textContent = `${Math.round((mouseY / iframeRect.height) * 100)}%`;
-                dynamicPercentage.style.display = 'block';
-            } else {
-                document.getElementById('dynamicLine').style.display = 'none';
-                document.getElementById('dynamicPercentage').style.display = 'none';
-            }
-        });
 
         // استدعاء دالة جلب البيانات عند تحميل الصفحة
         window.onload = fetchData;
